@@ -62,18 +62,25 @@ namespace LauncherAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = await _userManager.FindByNameAsync(model.EmailOrUserName);
+            var user = await _userManager.FindByEmailAsync(model.EmailOrUserName);
+            if (user == null)
+            {
+                user = await _userManager.FindByNameAsync(model.EmailOrUserName);
+            }
 
-            if (user == null || await _userManager.CheckPasswordAsync(user, model.Password) == false)
+            if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 return BadRequest("Invalid username or password");
             }
 
             var token = _tokenService.CreateToken(user);
             user.RefreshToken = _tokenService.CreateRefreshToken();
-            user.RefreshTokenExpiryTime = DateTime.Now.AddDays(7);
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
             return Ok(new { token, user.RefreshToken });
         }
+
 
         [HttpPost("RefreshToken")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDTO tokenRefreshModel)

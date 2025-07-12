@@ -78,7 +78,8 @@ builder.Services.AddAuthentication(options =>
 });
 
 
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
+
 
 builder.Services.AddTransient<TokenService>();
 
@@ -86,7 +87,6 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// HTTP pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
